@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	
+	<groupId>com.jd.discovery.channel.dal.service</groupId>
+	<artifactId>discovery-channel-dal-service</artifactId>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>com.jd.discovery.channel.dal.domain</groupId>
+			<artifactId>discovery-channel-dal-domain</artifactId>
+			<version>1.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.jd.discovery.channel.dal.common</groupId>
+			<artifactId>discovery-channel-dal-common</artifactId>
+			<version>1.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.jd.discovery.channel.dal.dao</groupId>
+			<artifactId>discovery-channel-dal-dao</artifactId>
+			<version>1.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.jd.discovery.channel.dal.client</groupId>
+			<artifactId>discovery-channel-dal-client</artifactId>
+			<version>${discovery-channel-dal-client.version}</version>
+		</dependency>
+        <dependency>
+            <groupId>com.jd.discovery.channel.dal.client</groupId>
+            <artifactId>discovery-channel-dal-client</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
+	<parent>
+		<groupId>com.jd.discovery.channel.dal</groupId>
+		<artifactId>discovery-channel-dal</artifactId>
+		<version>1.0-SNAPSHOT</version>
+	</parent>
+</project>

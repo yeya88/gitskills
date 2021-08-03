@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd"
+	default-autowire="byName">
+
+	<!-- aop动态代理 -->
+	<aop:aspectj-autoproxy proxy-target-class="true" />
+
+	<!-- com.jd.security.configsec.spring.config.JDSecurityPropertyPlaceholderConfigurer 是否使用此安全类型 -->
+	<!-- org.springframework.beans.factory.config.PropertyPlaceholderConfigurer spring默认Configurer -->
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<!-- 为集成安全部配置文件加解密组件, 需在项目中所有的PropertyPlaceholderConfigurer配置上ignoreUnresolveablePlaceholders为true -->
+		<property name="ignoreUnresolvablePlaceholders" value="true" />
+		<property name="locations">
+			<list>
+				<value>classpath:env.properties</value>
+				<value>classpath:jectcache.properties</value>
+			</list>
+		</property>
+		<!-- 为集成安全部配置文件加解密组件, 将所有引用了important.properties文件的PropertyPlaceholder改造成PropertyFactoryBean + PropertyPlaceholderConfigurer的形式 -->
+		<property name="properties" ref="secApplicationProperties" />
+	</bean>
+	<!-- 为集成安全部配置文件加解密组件, 将所有引用了important.properties文件的PropertyFactoryBean改为com.jd.security.configsec.spring.config.JDSecurityPropertyFactoryBean -->
+	<bean id="secApplicationProperties" class="com.jd.security.configsec.spring.config.JDSecurityPropertyFactoryBean">
+		<property name="ignoreResourceNotFound" value="true" />
+		<!-- 为集成安全部配置文件加解密组件, 需将important.properties文件配置在secLocation中, 并去除locations中的important.properties -->
+		<property name="secLocation" value="classpath:important.properties" /><!-- 不能使用classpath*: -->
+		<!-- <property name="locations"> <list> <value>classpath:other2.properties</value> </list> </property> -->
+	</bean>
+
+	<!-- 自动扫描bean，把作了注解的类转换为bean -->
+	<context:component-scan base-package="com.jd.discovery.channel.dal.service" />
+	<context:component-scan base-package="com.jd.discovery.channel.dal.dao" />
+	<context:component-scan base-package="com.jd.discovery.channel.dal.common" />
+
+	<!-- <cache:annotation-driven /> -->
+
+	<!-- spring异步线程池 -->
+	<task:annotation-driven executor="asyncExecutor" />
+	<task:executor id="asyncExecutor" pool-size="10-1000" queue-capacity="1000"
+		keep-alive="10" />
+
+	<import resource="spring/spring-config-provider.xml" />
+	<import resource="spring/spring-config-dao.xml" />
+	<import resource="spring/spring-config-ump.xml" />
+	<import resource="spring/spring-config-cfc.xml" />
+</beans>

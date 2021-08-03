@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+	<!-- 数据源配置,使用应用内的DBCP数据库连接池 master -->
+	<bean id="masterDataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init"
+		destroy-method="close">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="url" value="${serverside.master.jdbc.url}" />
+		<property name="username" value="${serverside.master.jdbc.username}" />
+		<property name="password" value="${serverside.master.jdbc.password}" />
+
+		<!-- 配置初始化大小、最小、最大 -->
+		<property name="initialSize" value="20" />
+		<property name="minIdle" value="10" />
+		<property name="maxActive" value="100" />
+		<!-- 配置获取连接等待超时的时间 -->
+		<property name="maxWait" value="3000" />
+		<!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+		<property name="timeBetweenEvictionRunsMillis" value="60000" />
+		<!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->
+		<property name="minEvictableIdleTimeMillis" value="300000" />
+
+		<property name="validationQuery" value="SELECT 'x' from dual" />
+		<property name="testWhileIdle" value="true" />
+		<property name="testOnBorrow" value="false" />
+		<property name="testOnReturn" value="false" />
+		<!-- 打开PSCache，并且指定每个连接上PSCache的大小 -->
+		<property name="poolPreparedStatements" value="false" />
+		<property name="maxPoolPreparedStatementPerConnectionSize" value="-1" />
+	</bean>
+
+	<!-- 数据源配置,使用应用内的DBCP数据库连接池 slave -->
+	<bean id="slaveDataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init"
+		destroy-method="close">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="url" value="${serverside.slave.jdbc.url}" />
+		<property name="username" value="${serverside.slave.jdbc.username}" />
+		<property name="password" value="${serverside.slave.jdbc.password}" />
+
+		<!-- 配置初始化大小、最小、最大 -->
+		<property name="initialSize" value="20" />
+		<property name="minIdle" value="10" />
+		<property name="maxActive" value="100" />
+		<!-- 配置获取连接等待超时的时间 -->
+		<property name="maxWait" value="3000" />
+		<!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+		<property name="timeBetweenEvictionRunsMillis" value="60000" />
+		<!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->
+		<property name="minEvictableIdleTimeMillis" value="300000" />
+
+		<property name="validationQuery" value="SELECT 'x' from dual" />
+		<property name="testWhileIdle" value="true" />
+		<property name="testOnBorrow" value="false" />
+		<property name="testOnReturn" value="false" />
+		<!-- 打开PSCache，并且指定每个连接上PSCache的大小 -->
+		<property name="poolPreparedStatements" value="false" />
+		<property name="maxPoolPreparedStatementPerConnectionSize" value="-1" />
+	</bean>
+
+	<!-- 动态数据源，根据不同注解切换数据源 -->
+	<bean id="dataSource" class="com.jd.njf.soa.commons.lang.spring.datasource.DynamicDataSource">
+		<property name="targetDataSources">
+			<map key-type="java.lang.String">
+				<!-- 在方法上使用注释匹配对应的数据源,如：@DataSource(value="slave")，使用map的key,不是value!!! -->
+				<!-- -->
+				<!-- write -->
+				<entry key="master" value-ref="masterDataSource" />
+				<!-- read -->
+				<entry key="slave" value-ref="slaveDataSource" />
+			</map>
+		</property>
+		<!-- 默认master数据源，如果不写注释默认使用此数据源 -->
+		<property name="defaultTargetDataSource" ref="masterDataSource" />
+	</bean>
+
+	<!--创建一个sql会话工厂bean，指定数据源 -->
+	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<!-- 指定数据源 -->
+		<property name="dataSource" ref="dataSource" />
+		<property name="typeAliasesPackage" value="com.jd.discovery.channel.dal.domain"></property>
+		<!--指定sql映射xml文件的路径 -->
+		<property name="mapperLocations" value="classpath:mapper/*Mapper.xml"></property>
+	</bean>
+
+	<!--自动扫描映射接口 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<!-- 指定sql会话工厂，在上面配置过的 -->
+		<property name="sqlSessionFactoryBeanName" value="sqlSession"></property>
+		<!-- 指定基础包，即自动扫描这个包以及它的子包下的所有映射接口类 -->
+		<property name="basePackage" value="com.jd.discovery.channel.dal.dao"></property>
+	</bean>
+
+	<!-- (事务管理)transaction manager, use JtaTransactionManager for global tx -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<!-- 配置数据库注解aop -->
+	<bean id="manyDataSourceAspect" class="com.jd.njf.soa.commons.lang.spring.datasource.DataSourceAspect" />
+	<aop:config>
+		<aop:aspect id="c" ref="manyDataSourceAspect">
+			<aop:pointcut id="tx" expression="execution(* com.jd.discovery.channel.dal.dao.*.*(..))" />
+			<aop:before pointcut-ref="tx" method="before" />
+		</aop:aspect>
+	</aop:config>
+	<!-- 配置数据库注解aop -->
+</beans>

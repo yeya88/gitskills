@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jd.discovery.channel.dal.dao.jindou.RecommendLookTagReceiveJinDouLogMapper">
+
+    <insert id="insertRecommendLookTagReceiveJinDouLog" parameterType="com.jd.discovery.channel.dal.client.domain.RecommendLookTagReceiveJinDouLog">
+      insert into recommend_look_tag_receive_jin_dou_log(
+      pin,
+      sn,
+      amoun,
+      send_state,
+      result_code,
+      result_msg,
+      jin_dou_config,
+      risk_state,
+      biz_exception_state,
+      create_time,
+      update_time,
+      remark,
+      extend
+      ) values (
+      #{pin},
+      #{sn},
+      #{amoun},
+      #{sendState},
+      #{resultCode},
+      #{resultMsg},
+      #{jinDouConfig},
+      #{riskState},
+      #{bizExceptionState},
+      #{createTime},
+      #{updateTime},
+      #{remark},
+      #{extend}
+      )
+    </insert>
+
+  <select id="getRecommendLookTagReceiveJinDouLogPageList" parameterType="com.jd.discovery.channel.dal.client.domain.QueryTagReceiveJinDouLogIn" resultType="com.jd.discovery.channel.dal.client.domain.RecommendLookTagReceiveJinDouLog">
+    select
+    id as id,
+    pin as pin,
+    sn as sn,
+    amoun as amoun,
+    remark as remark,
+    result_code as resultCode,
+    send_state as sendState,
+    result_code as resultCode,
+    risk_state as riskState,
+    biz_exception_state as bizExceptionState,
+    jin_dou_config as jinDouConfig,
+    create_time as createTime,
+    result_msg as resultMsg
+    from recommend_look_tag_receive_jin_dou_log
+    where create_time  <![CDATA[>=]]> #{createTime}
+    <if test="id != null">
+      and id = #{id}
+    </if>
+    <if test="pin != null">
+      and pin = #{pin}
+    </if>
+    <if test="sendState != null">
+      and send_state = #{sendState}
+    </if>
+    <if test="riskState != null">
+      and risk_state = #{riskState}
+    </if>
+    <if test="bizExceptionState != null">
+      and biz_exception_state = #{bizExceptionState}
+    </if>
+    <if test="resultCode != null">
+      and result_code = #{resultCode}
+    </if>
+    order by create_time desc
+    limit #{startIndex}, #{pageSize}
+  </select>
+
+  <select id="getRecommendLookTagReceiveJinDouLogPageTotal" parameterType="com.jd.discovery.channel.dal.client.domain.QueryTagReceiveJinDouLogIn" resultType="int">
+    select count(1)
+    from recommend_look_tag_receive_jin_dou_log
+    where create_time  <![CDATA[>=]]> #{createTime}
+    <if test="id != null">
+      and id = #{id}
+    </if>
+    <if test="pin != null">
+      and pin = #{pin}
+    </if>
+    <if test="sendState != null">
+      and send_state = #{sendState}
+    </if>
+    <if test="riskState != null">
+      and risk_state = #{riskState}
+    </if>
+    <if test="bizExceptionState != null">
+      and biz_exception_state = #{bizExceptionState}
+    </if>
+    <if test="resultCode != null">
+      and result_code = #{resultCode}
+    </if>
+  </select>
+
+  <update id="updateRecommendLookTagReceiveJinDouLog" parameterType="com.jd.discovery.channel.dal.client.domain.RecommendLookTagReceiveJinDouLog">
+    update recommend_look_tag_receive_jin_dou_log
+    set update_time = now()
+    <if test="sendState != null">
+      , send_state = #{sendState}
+    </if>
+    <if test="remark != null">
+      , remark = #{remark}
+    </if>
+    <if test="extend != null">
+      , extend = #{extend}
+    </if>
+    where id = #{id}
+  </update>
+
+</mapper>

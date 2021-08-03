@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:jsf="http://jsf.jd.com/schema/jsf"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans.xsd 
+	http://www.springframework.org/schema/aop 
+	http://www.springframework.org/schema/aop/spring-aop.xsd 
+	http://jsf.jd.com/schema/jsf 
+	http://jsf.jd.com/schema/jsf/jsf.xsd"
+	default-autowire="byName">
+
+	<!-- 全部provider和consumer走此逻辑 -->
+	<bean id="umpJsfFilter" class="com.jd.njf.soa.commons.lang.jsf.filter.UmpJsfFilter" scope="prototype">
+		<property name="devMode" value="${devMode}" />
+		<property name="projectPrefix" value="${joneProjectName}" />
+	</bean>
+	<jsf:filter id="globalUmpJsfFilter" ref="umpJsfFilter" />
+	<!-- 监控注解处理器 -->
+	<bean class="com.jd.ump.annotation.JAnnotation">
+		<!-- 初始化系统存活监控点 key -->
+		<property name="systemKey" value="${joneProjectName}.alive"></property>
+		<!-- 初始化系统的jvm监控 key -->
+		<property name="jvmKey" value="${joneProjectName}.jvm"></property>
+	</bean>
+</beans>

@@ -1,0 +1,14 @@
+.classpath
+.project
+.settings/
+target/
+*/.classpath
+*/.project
+*/.settings/
+*/target/
+.idea/
+*.iml
+*.DS_Store
+*/WEB-INF/lib/
+*.log
+

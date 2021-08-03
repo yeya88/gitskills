@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:jsf="http://jsf.jd.com/schema/jsf" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans.xsd 
+	http://www.springframework.org/schema/aop 
+	http://www.springframework.org/schema/aop/spring-aop.xsd 
+	http://jsf.jd.com/schema/jsf 
+	http://jsf.jd.com/schema/jsf/jsf.xsd
+	http://www.springframework.org/schema/context 
+	http://www.springframework.org/schema/context/spring-context.xsd"
+	default-autowire="byName">
+
+	<!-- aop动态代理 -->
+	<aop:aspectj-autoproxy proxy-target-class="true" />
+
+	<context:component-scan base-package="com.jd.m.njf.server.client" />
+	<context:component-scan base-package="com.jd.njf.soa.commons.lang.cfc" />
+	
+	<!-- cfcJimDB -->
+	<bean id="cfcJimClient" class="com.jd.jim.cli.ReloadableJimClientFactoryBean">
+		<property name="jimUrl" value="${cfc.jimdb.url}" />
+		<property name="configId" value="0" />
+	</bean>
+	
+	<!-- 业务系统Cfc上报服务 -->
+	<jsf:consumer id="collectJsfService" interface="com.jd.cfc.server.client.CollectJsfService"
+		protocol="jsf" alias="${cfc.jsf.alias}" timeout="1000" async="true">
+	</jsf:consumer>
+
+	<!-- 项目基本信息配置 -->
+	<bean id="rpcConfig" class="com.jd.m.njf.server.client.dto.rpcstat.RpcConfig">
+		<!-- 项目token, 可在rpc-manager中我的项目中查看 -->
+		<property name="token" value="${cfc.soa.token}" /><!-- 项目token，请从http://cfc.jd.com获取 -->
+		<property name="projectName" value="${joneProjectName}" /><!-- J-one项目英文名称 -->
+		<property name="environment" value="test" /><!-- test、beta 或 production -->
+		<property name="zkServer" value="${cfc.zk.server}" />
+		<!-- cfc.jsf.alias: 预发环境：11.19.192.33:22288 生产环境：11.26.107.50:22288,11.26.188.255:22288,11.26.158.188:22288,11.24.65.76:22288,11.24.29.72:22288 -->
+		<property name="on" value="true" />
+		<property name="year" value="0" /><!-- 数据保存时限，特殊项目配置1：数据会保存一年 -->
+	</bean>
+
+	<!-- 降级控制需要 -->
+	<bean id="rpcZkData" class="com.jd.m.njf.server.client.intef.rpcstat.zk.RpcZkData">
+		<property name="rpcConfig" ref="rpcConfig" />
+	</bean>
+
+	<!-- 关键api -->
+	<bean id="rpcApi" class="com.jd.m.njf.server.client.intef.rpcstat.api.RpcApi">
+		<property name="rpcConfig" ref="rpcConfig" />
+		<property name="collectJsfService" ref="collectJsfService" />
+		<property name="rpcZkData" ref="rpcZkData" />
+		<!-- jimdb的redis api beanId -->
+		<property name="redisClient" ref="cfcJimClient" />
+	</bean>
+	
+	<!-- 配置一些系统参数 -->
+	<bean id="sysMap" class="java.util.HashMap">
+		<constructor-arg>
+			<map>
+				<entry key="devMode" value="${devMode}" />
+				<entry key="projectPrefix" value="${joneProjectName}" />
+			</map>
+		</constructor-arg>
+	</bean>
+	
+	<!-- cfc的jsf拦截上报过滤器，如果不需要拦截jsf上报，则可以直接注释掉，全部provider走此逻辑 -->
+	<!-- 如果服务提供了jsf的provider，请开启下面的filter -->
+	<bean id="cfcJsfAllFilter" class="com.jd.njf.soa.commons.lang.cfc.CfcJsfAllFilter" scope="prototype">
+		<property name="devMode" value="${devMode}" />
+		<property name="projectPrefix" value="${joneProjectName}" />
+	</bean>
+	<!-- 该拦截器必须要所有的jsf对象都初始化成功，链接上才可以开启，测试无此环境，故注释掉，不然会报错误： Error when new instance of filter class :null -->
+	<jsf:filter id="globalCfcJsfFilter" ref="cfcJsfAllFilter" providers="*" consumers="*" />
+</beans>

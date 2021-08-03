@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/mvc 
+	http://www.springframework.org/schema/mvc/spring-mvc.xsd
+	http://www.springframework.org/schema/context 
+	http://www.springframework.org/schema/context/spring-context.xsd 
+	http://www.springframework.org/schema/util 
+	http://www.springframework.org/schema/util/spring-util.xsd"
+	default-autowire="byName">
+
+	<context:component-scan base-package="com.jd.discovery.channel.dal.controller" />
+	<mvc:default-servlet-handler />
+	<!-- <mvc:annotation-driven /> -->
+	<mvc:annotation-driven>
+		<!--BodyArgumentsResolver -->
+		<mvc:argument-resolvers>
+			<bean class="com.jd.njf.soa.commons.lang.spring.resolver.JsonArgumentsResolver" />
+		</mvc:argument-resolvers>
+		<mvc:message-converters register-defaults="true">
+			<bean class="org.springframework.http.converter.StringHttpMessageConverter">
+				<property name="supportedMediaTypes">
+					<list>
+						<value>text/plain;charset=UTF-8</value>
+						<value>text/html;charset=UTF-8</value>
+					</list>
+				</property>
+			</bean>
+			<bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+				<property name="supportedMediaTypes">
+					<list>
+						<value>application/json;charset=UTF-8</value>
+						<value>application/x-www-form-urlencoded; charset=UTF-8</value>
+					</list>
+				</property>
+			</bean>
+		</mvc:message-converters>
+	</mvc:annotation-driven>
+
+	<mvc:interceptors>
+		<!-- 使用bean定义一个Interceptor，直接定义在mvc:interceptors根下面的Interceptor将拦截所有的请求 -->
+		<mvc:interceptor>
+			<mvc:mapping path="/**" />
+			<bean class="com.jd.njf.soa.commons.lang.interceptor.UmpInterceptor">
+				<property name="devMode" value="${devMode}" />
+				<property name="projectPrefix" value="${joneProjectName}" />
+			</bean>
+		</mvc:interceptor>
+		<mvc:interceptor>
+			<mvc:mapping path="/**" />
+			<bean class="com.jd.njf.soa.commons.lang.cfc.CfcServiceInterceptor">
+				<property name="devMode" value="${devMode}" />
+			</bean>
+		</mvc:interceptor>
+	</mvc:interceptors>
+	
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<!-- 为集成安全部配置文件加解密组件, 需在项目中所有的PropertyPlaceholderConfigurer配置上ignoreUnresolveablePlaceholders为true -->
+		<property name="ignoreUnresolvablePlaceholders" value="true" />
+		<property name="locations">
+			<list>
+				<value>classpath:env.properties</value>
+				<value>classpath:jectcache.properties</value>
+			</list>
+		</property>
+		<!-- 为集成安全部配置文件加解密组件, 将所有引用了important.properties文件的PropertyPlaceholder改造成PropertyFactoryBean + PropertyPlaceholderConfigurer的形式 -->
+		<property name="properties" ref="secApplicationProperties" />
+	</bean>
+	<!-- 为集成安全部配置文件加解密组件, 将所有引用了important.properties文件的PropertyFactoryBean改为com.jd.security.configsec.spring.config.JDSecurityPropertyFactoryBean -->
+	<bean id="secApplicationProperties" class="com.jd.security.configsec.spring.config.JDSecurityPropertyFactoryBean">
+		<property name="ignoreResourceNotFound" value="true" />
+		<!-- 为集成安全部配置文件加解密组件, 需将important.properties文件配置在secLocation中, 并去除locations中的important.properties -->
+		<property name="secLocation" value="classpath:important.properties" /><!-- 不能使用classpath*: -->
+	</bean>
+
+</beans>
